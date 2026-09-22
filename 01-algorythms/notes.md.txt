@@ -1,0 +1,14 @@
+## Problem: Two Sum
+**Pattern:** Hash Map
+**Key Insight:** Do not accumulate. Subtract instead.
+**Algorithm:**
+  1. Loop through the array.
+  2. Calculate `complement = target - currentNum`.
+  3. Check map: "Have I seen this complement before?"
+     - Yes -> Return [map.get(complement), currentIndex]
+     - No  -> map.set(currentNum, currentIndex)
+**Data Structure:** Map stores { number: index }
+**Time:** O(n) - single pass.
+**Space:** O(n) - map stores up to n items.
+**Gotcha:** Use `<` not `<=` in the loop to avoid accessing undefined.
+
