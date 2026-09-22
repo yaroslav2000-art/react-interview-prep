@@ -12,3 +12,20 @@
 **Space:** O(n) - map stores up to n items.
 **Gotcha:** Use `<` not `<=` in the loop to avoid accessing undefined.
 
+
+
+
+## Problem: Best Time to Buy and Sell Stock
+**Pattern:** Running Minimum (Greedy / One Pass)
+**Key Insight:** Don't find the global minimum first. Track the lowest price seen *so far* as you iterate, and calculate profit on the fly.
+**Algorithm:**
+  1. Initialize `minPrice = Infinity` and `maxProfit = 0`.
+  2. Loop through the array once.
+  3. If current price < minPrice, update minPrice.
+  4. Else if (current price - minPrice > maxProfit), update maxProfit.
+**Time:** O(n) - single pass.
+**Space:** O(1) - only two variables.
+**Gotcha:** 
+  - The `else if` is crucial: you cannot sell on the same day you buy.
+  - Starting `minPrice` at `0` is a trap; use `Infinity` so the first price always sets the baseline.
+  - Sorting is O(n log n) — too slow for interviews.
