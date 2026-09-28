@@ -53,17 +53,17 @@
 // }
 
 function twoSum(nums, target) {
-  const map = new Map();
+  const set = new Set();
 
   for (let i = 0; i < nums.length; i++) {
     const currentItem = nums[i];
     const x = target - currentItem;
 
-    if (map.has(x)) {
-      return [map.get(x), i];
+    if (set.has(x)) {
+      return [set.get(x), i];
     }
 
-    map.set(currentItem, i);
+    set.add(currentItem, i);
   }
 
   return [];

@@ -29,3 +29,14 @@
   - The `else if` is crucial: you cannot sell on the same day you buy.
   - Starting `minPrice` at `0` is a trap; use `Infinity` so the first price always sets the baseline.
   - Sorting is O(n log n) — too slow for interviews.
+
+
+
+
+
+  ## Contains Duplicate
+**Pattern:** Hash Set
+**Key Insight:** Track seen values. If you encounter one twice, return true.
+**When to use Set vs Map:** Set when you only care about presence. Map when you need key → value.
+**Time:** O(n). **Space:** O(n).
+**Alt solution:** new Set(nums).size !== nums.length (concise but no early exit)
