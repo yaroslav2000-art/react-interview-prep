@@ -40,3 +40,56 @@
 **When to use Set vs Map:** Set when you only care about presence. Map when you need key → value.
 **Time:** O(n). **Space:** O(n).
 **Alt solution:** new Set(nums).size !== nums.length (concise but no early exit)
+
+
+
+## Problem: Valid Anagram
+**Pattern:** Frequency Map (Hash Map counting)
+**Key Insight:** Anagrams have the same length and the same count of each character.
+**Algorithm:**
+  1. If lengths differ → return false.
+  2. Build a Map of char → count from s.
+  3. Loop through t: if char not in map → false. Decrement count.
+     If any count goes below 0 → false.
+  4. Return true.
+**Time:** O(n)
+**Space:** O(1) — at most 26 letters (or O(k) for unicode)
+**Gotcha:** 
+  - `return` inside `forEach` does NOT exit the outer function. Use a `for` loop.
+  - Store counts, not indices. `map.set(char, (map.get(char) || 0) + 1)`
+  - Always do the length check first — it's a free early exit.
+
+## Alternative: Sorting
+- Sort both strings, compare. O(n log n) time.
+- Valid answer, but frequency map is better.
+
+Valid Anagram — The Pantry Analogy
+The idea:
+The first string (s) is a pantry. Every character in s is an ingredient, and the count of each character is how many of that ingredient we have in stock.
+
+Building the pantry:
+Loop through s. For each character, add one to its count in the pantry.
+Example: s = "aab" → pantry has 2 apples, 1 banana.
+
+Consuming the pantry:
+Loop through t. For each character in t, try to take one of that ingredient out of the pantry.
+
+If the ingredient isn't in the pantry at all → t needs something s never provided → fail.
+
+If the pantry has it, decrement its count by one.
+
+If the count goes below zero → t asked for more of that ingredient than s ever had → fail.
+
+Finishing:
+Since s and t are the same length, if every character in t found its ingredient in the pantry (and no count ever went negative), then every ingredient was used up exactly. Return true.
+
+Why the two checks matter:
+
+!count.has(char) → t has an ingredient that doesn't exist in the pantry at all.
+
+count.get(char) < 0 → t has more of an ingredient than the pantry stocked.
+
+The one-line summary:
+Count what s provides, consume it with t, and fail if t ever asks for something missing or asks for more than was stocked.
+
+That's the pattern. It works for Valid Anagram, Ransom Note, and any "does string A contain enough of string B's characters" problem.

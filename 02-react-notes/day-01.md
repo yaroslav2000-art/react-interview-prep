@@ -82,3 +82,15 @@ Real DOM updates only where differences exist
 - setState schedules an update; React batches multiple updates in one event handler.
 - Re-renders the component where state lives + all its children.
 - Builds new Virtual DOM subtree, diffs against old, updates only changed DOM nodes.
+
+(One more subtle point
+You might wonder: "What if two different data items have the same key?" React will warn you and behave unpredictably. Keys must be unique within the list. Not globally unique — just within the sibling array. But since keys usually come from database IDs, they're globally unique anyway.
+
+Summary
+React re-renders by creating new JSX elements. It needs to know which new element maps to which old component instance.
+
+Without keys, React uses position. Bad for reordering.
+
+With keys, React uses identity. Correct, efficient, preserves state.
+
+The sentence from the docs just means: "Keys are how you tell React 'this JSX element is the same item as the one with this key from last time.'")
