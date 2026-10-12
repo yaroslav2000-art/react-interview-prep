@@ -93,3 +93,77 @@ The one-line summary:
 Count what s provides, consume it with t, and fail if t ever asks for something missing or asks for more than was stocked.
 
 That's the pattern. It works for Valid Anagram, Ransom Note, and any "does string A contain enough of string B's characters" problem.
+
+
+
+12.10:
+# Algorithm Patterns — Strings & Two Pointers
+
+## Pattern: Two Pointers
+**When to use:**
+- Palindrome checks
+- Reversing arrays/strings in place
+- Sorted array problems (Two Sum sorted, 3Sum, Container With Most Water)
+- Anything where you compare or manipulate from both ends inward
+
+**The idea:**
+Start `left = 0` and `right = length - 1`. Move them toward each other. Do work as they converge. Loop condition: `while (left < right)`.
+
+**Time:** Usually O(n) — each pointer visits each element once.
+**Space:** Usually O(1) — just two integer variables.
+
+---
+
+## Problem: Valid Palindrome
+**File:** `valid-palindrome.js`
+**Pattern:** Two Pointers + Skip Loop
+**Key Insight:** Ignore non-alphanumeric characters and case, then compare from both ends.
+
+**Algorithm:**
+1. `left = 0`, `right = length - 1`.
+2. Outer loop: `while (left < right)`.
+3. Inner skip loop: advance `left` while `str[left]` is not alphanumeric.
+4. Inner skip loop: retreat `right` while `str[right]` is not alphanumeric.
+5. Compare `str[left].toLowerCase()` and `str[right].toLowerCase()`. If different → return `false`.
+6. Move both inward. Repeat.
+7. Return `true`.
+
+**Helper:**
+```javascript
+function isAlphaNumeric(c) {
+  return /^[a-z0-9]$/i.test(c);
+}
+
+
+
+
+# Closures & `this`
+
+## Closures
+
+### Definition
+A closure is a function that remembers variables from the scope where it was defined, even after the outer function has returned.
+
+### Example
+```javascript
+function makeCounter() {
+  let count = 0;
+  return function() {
+    return count++;
+  };
+}
+
+const counter = makeCounter();
+counter(); // 0
+counter(); // 1
+counter(); // 2
+
+##this
+this is determined at call time, not definition time. It refers to the context a function is called in.
+
+The four call types
+How it's called	What this is
+user.greet() (method)	user
+greet() (plain)	undefined (strict) or global
+new Greet()	The new object
+greet.call(obj)	The first argument
