@@ -1,0 +1,12 @@
+# Git Notes
+
+## The Mental Model
+
+### Commits are snapshots
+A commit is a snapshot of your entire project at a moment in time. Not a diff — a full snapshot. Git stores them efficiently (only changed files are duplicated), but conceptually, think "photo of the project."
+
+### Branches are pointers
+A branch is just a **label pointing to a commit**. Not a copy of the code. Not a folder. A 40-character hash stored in a tiny file.
+
+```bash
+git branch bugFix   # creates a new label pointing at the current commit
