@@ -94,3 +94,79 @@ Without keys, React uses position. Bad for reordering.
 With keys, React uses identity. Correct, efficient, preserves state.
 
 The sentence from the docs just means: "Keys are how you tell React 'this JSX element is the same item as the one with this key from last time.'")
+
+19.10 - # React Patterns — Tic-Tac-Toe Insights
+
+## 1. Lifting State Up (The most important pattern)
+
+**The Problem:** Initially, each `<Square />` could hold its own state (`const [value, setValue] = useState(null)`).
+**Why we didn't:** The `<Board />` component needs to know the value of _all 9 squares_ to calculate a winner. If each Square kept its own state, the Board would have no idea what's happening.
+**The Solution:** We moved the `squares` state up to the `<Board />` component and passed the values down as props.
+**The Rule:**
+
+> If two or more components need to share state, move that state up to their closest common parent.
+
+## 2. Unidirectional Data Flow (Props Down, Events Up)
+
+Since the state lives in `Board`, how does a `Square` update it when clicked?
+
+1. `Board` defines a function: `handleClick(i)`.
+2. `Board` passes it down as a prop: `<Square onSquareClick={() => handleClick(i)} />`
+3. `Square` calls the prop when clicked: `<button onClick={onSquareClick}>`
+   **The Rule:** Child components never mutate parent state directly. They call functions passed down from the parent.
+
+## 3. Immutability (Why we use `.slice()`)
+
+**The Code:**
+
+```javascript
+const nextSquares = squares.slice();
+nextSquares[i] = "X";
+setSquares(nextSquares);
+```
+
+4. Updating State with Previous State
+   The Code:
+
+javascript
+setHistory((prevHistory) => [...prevHistory, nextSquares]);
+Why pass a function? State updates in React are asynchronous and batched. If you write setHistory([...history, nextSquares]), history might be a stale value from the current render.
+The Rule:
+
+If your new state depends on the previous state, always use the updater function: setState(prev => newValue).
+
+5. Time Travel (Managing history)
+   The Pattern: Instead of storing a single game state, we store an array of states (a timeline).
+
+javascript
+const [history, setHistory] = useState([Array(9).fill(null)]);
+history is an array of arrays. Each inner array is a snapshot of the board.
+
+currentMove is just an index pointing to the active snapshot in history.
+The Insight: Storing state as a sequence of immutable snapshots makes "Undo" and "Time Travel" incredibly easy. 6. Pure Helpers (e.g., calculateWinner)
+The Code: We wrote a standalone function calculateWinner(squares) outside the component.
+Why? It doesn't need React. It takes an array, runs logic, and returns a result. Keeping it outside the component makes it easy to test and keeps the component focused on rendering.
+The Rule:
+
+Extract complex logic (like win conditions) into pure helper functions.
+
+7. Keys in Lists
+   The Code:
+
+javascript
+{squares.map((square, i) => (
+<Square key={i} value={square} />
+))}
+Insight: We used the array index i here because the list is static (always 9 squares, never reordered).
+The Rule:
+
+In a static list, using the index as a key is fine. But if the list can be reordered, filtered, or added to, use a unique ID from your data. Never use index keys for dynamic lists.
+
+⚠️ Interview Gotchas from this tutorial
+"Why don't you put the state in the Square?" (Answer: Lifting state up so the Board can calculate the winner).
+
+"Why did you use squares.slice()?" (Answer: Immutability. React uses reference equality to trigger re-renders).
+
+"What happens if you mutate state directly?" (Answer: React won't re-render because the reference didn't change).
+
+"Why use prevHistory?" (Answer: State updates are async; passing an updater function guarantees you are updating the most recent state).
