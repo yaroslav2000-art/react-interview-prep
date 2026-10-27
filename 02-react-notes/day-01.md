@@ -170,3 +170,5 @@ In a static list, using the index as a key is fine. But if the list can be reord
 "What happens if you mutate state directly?" (Answer: React won't re-render because the reference didn't change).
 
 "Why use prevHistory?" (Answer: State updates are async; passing an updater function guarantees you are updating the most recent state).
+
+25.10:

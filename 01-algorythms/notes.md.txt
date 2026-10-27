@@ -167,3 +167,144 @@ user.greet() (method)	user
 greet() (plain)	undefined (strict) or global
 new Greet()	The new object
 greet.call(obj)	The first argument
+
+25.10:
+
+1. Sliding window thoughts:
+  RETURN MAX AVERAGE
+
+  1) Store max averages somewhere: map, SET , arr?
+  2) Use slice
+  3) Undefined amount of subarrays => dynamic shift
+  4) PATTERNS: TWO POINTER
+  5) Where should I store maxLength;
+  6) left = 0; right = 2; 'abc' => length of the window: right - left + 1
+  7) However, right - left + 1 is the Sliding Window Golden Formula
+  8) Index:   0   1   2   3   4
+      Value: [ a | b | c | d | e ]
+
+
+PATTERNS used:
+1. Two Pointers moving in the same direction
+2. Storing the current value and maxValue 
+3. Using Math.max to determine the max value
+4. Creating set to track duplicates
+
+# Algorithm Patterns: Fixed Sliding Window & Running Sum
+
+## Pattern: Fixed Sliding Window
+**When to use:** 
+- The problem asks for a contiguous subarray or substring of a specific length `k`.
+- You need to find the maximum, minimum, or average of that window.
+
+**The Core Idea:**
+Imagine a physical window of size `k`. You slide it across the array one step at a time.
+Instead of recalculating the entire window at every step (which is slow, O(n*k)), you maintain the "state" of the window as you slide it.
+
+**The "Sliding" Mechanics:**
+1. **Expand:** Add the new element entering the right side (`nums[right]`).
+2. **Shrink:** Subtract the old element leaving the left side (`nums[left]`).
+3. **Check:** Evaluate the current window against your maximum/minimum.
+
+---
+
+## Pattern: Running Sum
+**When to use:** 
+- You need to repeatedly calculate the sum of a contiguous block of numbers.
+
+**The Core Idea:**
+Store the sum of the current window in a single variable (`currentSum`). 
+When the window moves, do not use `.reduce()` or a `for` loop to re-add the numbers. 
+Just do: `currentSum = currentSum + newElement - oldElement`.
+
+This turns an O(k) calculation into an O(1) calculation.
+
+---
+
+## 🚨 The Pitfall: Over-engineering the Data Structure
+In my first attempt, I used a `Map` to store the window's elements and `Array.from(map.keys()).reduce()` to calculate the sum.
+**Why this fails:**
+1. **Duplicates:** Maps only keep unique keys. If the array has duplicate numbers (e.g., `[5, 5, 5]`), the Map will overwrite them, and your sum will be wrong.
+2. **Performance:** Converting a Map to an Array and running `.reduce()` inside a loop creates an O(n*k) time complexity.
+3. **Memory:** It uses O(k) space.
+
+**The Rule:** 
+> If you only need the SUM of a window, you don't need to store the elements. Just store the running sum in a primitive variable. Keep Space Complexity at O(1).
+
+---
+
+## The Optimal Template (Memorize this shape)
+
+```javascript
+const fixedWindowTemplate = (nums, k) => {
+  let left = 0;
+  let currentState = 0; // e.g., sum
+  let maxState = -Infinity; // Initialize carefully based on problem
+
+  for (let right = 0; right < nums.length; right++) {
+    // 1. Add the new element to the window state
+    currentState += nums[right];
+
+    // 2. While window is too big, shrink from the left
+    // (In fixed window, this will only trigger once per loop)
+    if (right - left + 1 > k) {
+      currentState -= nums[left];
+      left++;
+    }
+
+    // 3. If the window is exactly size k, record the answer
+    if (right - left + 1 === k) {
+      maxState = Math.max(maxState, currentState);
+    }
+  }
+
+  return maxState / k; // Or whatever the problem asks for
+};
+
+# Algorithm Patterns: Dynamic Sliding Window
+
+## Problem: Longest Substring Without Repeating Characters
+**When to use:** Finding the longest/shortest substring or subarray that meets a specific condition, where the window size is **not fixed**.
+
+**The Core Idea:**
+Use two pointers (`left` and `right`) to represent the window. The `right` pointer "explores" by expanding the window one character at a time. If the window becomes invalid (e.g., we find a duplicate), the `left` pointer shrinks the window until it becomes valid again.
+
+**Data Structure:** 
+A `Set` is perfect for this problem because it stores unique characters and allows O(1) lookups (`has`), additions (`add`), and deletions (`delete`).
+
+---
+
+## The Algorithm (Step-by-Step)
+1. Initialize `left = 0`, `maxLength = 0`, and an empty `Set`.
+2. Loop `right` from `0` to the end of the string.
+3. **The Shrink Loop:** While the `Set` already contains `str[right]`:
+   - Remove `str[left]` from the Set.
+   - Move `left` forward (`left++`).
+4. **Expand:** Add `str[right]` to the Set.
+5. **Evaluate:** Update `maxLength` using the formula `right - left + 1`.
+
+## The Code Template
+```javascript
+const lengthOfLongestSubstring = (str) => {
+  let left = 0;
+  let maxLength = 0;
+  const charSet = new Set();
+
+  for (let right = 0; right < str.length; right++) {
+    const current = str[right];
+
+    // Shrink the window until the duplicate is gone
+    while (charSet.has(current)) {
+      charSet.delete(str[left]);
+      left++;
+    }
+
+    // Add the new character
+    charSet.add(current);
+
+    // Update maxLength (right - left + 1)
+    maxLength = Math.max(maxLength, right - left + 1);
+  }
+
+  return maxLength;
+};
