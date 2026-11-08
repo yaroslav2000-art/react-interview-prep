@@ -308,3 +308,14 @@ const lengthOfLongestSubstring = (str) => {
 
   return maxLength;
 };
+
+
+
+
+30.10: PATTERN - LINKED LIST (dummy + tracking current)
+
+MOVE ZEROES:
+Key Takeaway
+Whenever you see "Move elements to the front/back" or "Remove duplicates from a sorted array in-place", it is almost always the Fast and Slow pointer pattern moving in the same direction.
+
+Try writing the code with the for loop and the swap, and let me know how it goes!
