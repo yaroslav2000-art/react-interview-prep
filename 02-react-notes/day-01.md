@@ -172,3 +172,279 @@ In a static list, using the index as a key is fine. But if the list can be reord
 "Why use prevHistory?" (Answer: State updates are async; passing an updater function guarantees you are updating the most recent state).
 
 25.10:
+Thinking in React:
+
+# React Architecture: Thinking in React
+
+## The Core Philosophy
+
+React is not just about writing JSX; it's a mental model for building UIs. The core philosophy is the **Single Responsibility Principle**: a component should ideally only do one thing. If it grows, it should be broken down into smaller subcomponents.
+
+## The 5-Step Mental Model
+
+### Step 1: Break the UI into a Component Hierarchy
+
+- Draw boxes around every component (and subcomponent) in the mockup.
+- **How to decide:** Look at the JSON data model. If a part of the UI maps directly to a piece of data, it's a component. If it's a container for other components, it's a component.
+- **Result:** You have a tree structure (e.g., `App -> Header`, `App -> Main -> SearchBar`, `Main -> Table -> Row`).
+
+### Step 2: Build a Static Version in React
+
+- Build the UI with **no interactivity** (no state, no event handlers).
+- Pass data down using **Props**.
+- **The Rule:** Don't use state at all in this step. It's easier to build the UI top-down or bottom-up without worrying about state yet.
+
+### Step 3: Find the Minimal but Complete Representation of UI State
+
+This is the most critical interview question. **What data actually needs to be state?**
+To figure this out, ask these **3 questions** for every piece of data:
+
+1.  **Does it remain unchanged over time?** If yes, it's not state.
+2.  **Is it passed in from a parent via props?** If yes, it's not state.
+3.  **Can you compute it based on other state or props?** If yes, **it is NOT state.** (This is a huge one).
+
+### Step 4: Identify Where Your State Should Live
+
+React uses **Unidirectional Data Flow** (State Colocation). To find the "owner" of a piece of state, follow these steps:
+
+1.  Identify _every_ component that renders something based on that state.
+2.  Find their **closest common parent** component.
+3.  The state should live in that common parent (or higher up).
+4.  If you can't find a common parent, create a new component higher up the tree to hold the state.
+
+### Step 5: Add Inverse Data Flow
+
+- If the state lives in a parent, but a child component needs to change it (e.g., typing in an input), the parent must pass down a **callback function** as a prop.
+- The child calls the function, which updates the state in the parent, which triggers a re-render.
+
+---
+
+## 💡 Case Study Example (The Searchable Product Table)
+
+Imagine you are building an app that filters a list of products based on a search bar, and also allows a checkbox to show only "in stock" items.
+
+**What is State?**
+
+- Original list of products? ❌ (Passed in as props).
+- Search text? ✅ (Changes via user input, can't be computed).
+- Checkbox status (show in-stock)? ✅ (Changes via user input, can't be computed).
+- Filtered list of products? ❌ (**Can be computed** using the original list + search text + checkbox).
+
+**Where does the state live?**
+
+- `SearchBar` renders the text.
+- `ProductTable` renders the filtered list.
+- Their closest common parent is the `App` (or `FilterableProductTable`). Therefore, `searchText` and `isInStockOnly` must live in the parent.
+
+---
+
+## 🎯 Interview Triggers & Key Phrases
+
+If an interviewer asks: _"How would you architect this UI?"_ or _"Where should this state live?"_ use these phrases:
+
+- **"I would start by breaking the UI into a component hierarchy based on the Single Responsibility Principle."**
+- **"I need to determine the minimal state. This data is passed from the parent, so it shouldn't be state."**
+- **"This list is derived data. Instead of putting it in state, I can compute it on the fly using `.filter()`. This avoids synchronization bugs."**
+- **"Since both components need this data, I will lift the state up to their closest common parent and pass callbacks down to handle the inverse data flow."**
+
+---
+
+## 📝 Flashcards to Add:
+
+1. **Front:** What are the 3 questions to determine if data is state?
+   **Back:** 1. Does it change over time? 2. Is it passed from a parent? 3. Can it be computed from other state/props?
+2. **Front:** If two sibling components need to share state, where should the state live?
+   **Back:** In their closest common parent. (Lifting State Up).
+3. **Front:** Why shouldn't a filtered list be stored in `useState`?
+   **Back:** Because it is derived data. It can be computed on the fly using `Array.filter()` based on existing state (like search text). Storing it in state causes sync issues.
+
+   01.11:
+
+4. **Components & JSX**
+   - **Definition:** Components are the building blocks of React; JSX is the syntax extension that compiles to `React.createElement()`.
+   - **Single Root Rule:** A component must return a single parent element.
+     - **Solution:** Use Fragments (`<>...</>`) to group elements without adding extra nodes to the DOM.
+   - **Purity:** Components must act as pure functions.
+     - **Rule:** Same props must return the same JSX. Never mutate external variables during render.
+
+5. **Props**
+   - **Definition:** Read-only data passed from parent to child.
+   - **Unidirectional Flow:** Data strictly flows down the component tree.
+   - **Updating Props:** A child cannot mutate its own props.
+     - **Solution:** The parent must pass down a **callback function** that the child calls to request a state change.
+   - **Spread Syntax:** `<Component {...object} />` passes all object keys as individual props.
+
+6. **Conditional Rendering**
+   - **Methods:** Use ternary operators (`condition ? <A /> : <B />`) or logical AND (`condition && <A />`).
+   - **The `0` Trap:** `items.length && <List />` will literally render the number `0` on the screen if the array is empty.
+     - **Fix:** Force a boolean check: `items.length > 0 && <List />`.
+   - **Rendering Nothing:** Return `null` from a component to render nothing at all without breaking the DOM.
+
+7. **Lists & The `key` Prop**
+   - **Purpose:** Keys give elements a **stable identity** across renders so React knows which component instance maps to which data.
+   - **Reconciliation (How React works):**
+     - **Same key:** React reuses the existing component instance and DOM node (preserves state).
+     - **New key:** React creates a brand new component instance.
+     - **Missing key:** React destroys the old component instance.
+   - **The `index` Anti-Pattern:**
+     - **Why it's bad:** If a list is reordered, filtered, or deleted from, the indices shift. React will misidentify items.
+     - **The Bug:** React reuses the wrong DOM nodes, causing local state (like input text or focus) to jump to the wrong item.
+   - **The Rule:** Always use a unique ID from the data (e.g., `item.id`). Only use `index` if the list is 100% static (never changes order or size).
+
+8. **Props vs. State**
+   - **Props:** External, read-only, passed from the parent component.
+   - **State:** Internal, memory-based, controlled by the component itself (via `useState`).
+
+     18.11: Managing state
+
+# React: Reacting to Input with State
+
+## 1. Declarative vs. Imperative UI
+
+This is the core philosophy of React.
+
+- **Imperative (Vanilla JS):** You tell the computer _how_ to do something step-by-step (e.g., "Select this element, add a class, remove this text, disable this button").
+- **Declarative (React):** You tell React _what_ the UI should look like based on the current state (e.g., "If `isLoading` is true, show the spinner"). React figures out how to update the DOM to match that state.
+
+## 2. The 5-Step Mental Model for Building UI
+
+When building a complex interactive component, don't start by writing code. Follow these steps:
+
+1. **Identify all visual states:** (e.g., Empty, Typing, Submitting, Success, Error).
+2. **Determine what triggers state changes:** (e.g., typing in an input, clicking a button, a network response).
+3. **Represent the state in memory:** Use `useState`.
+4. **Remove non-essential state:** (See Principle of Minimal State).
+5. **Connect the event handlers:** Write the functions that update the state.
+
+## 3. Controlled Components (Forms)
+
+This is the most important practical takeaway. In HTML, form elements (like `<input>`) maintain their own internal state. In React, we want React state to be the **"single source of truth"**.
+
+- We call this a **Controlled Component** because React _controls_ the value of the input.
+- We force the input to display the React state using the `value` prop.
+- We update the state using the `onChange` event.
+
+### The Pattern:
+
+```jsx
+const [text, setText] = useState("");
+
+<input value={text} onChange={(e) => setText(e.target.value)} />;
+```
+
+# React: Choosing the State Structure
+
+## The Core Philosophy
+
+Structuring state well can mean the difference between a component that is a joy to modify and one that is a buggy nightmare. You should always aim for state that is **minimal, non-redundant, and flat**.
+
+## The 5 Principles of State Structure
+
+### 1. Group Related State
+
+If two or more state variables always change together, combine them into a single state object.
+
+- **Bad:** `const [x, setX] = useState(0);` and `const [y, setY] = useState(0);`
+- **Good:** `const [position, setPosition] = useState({ x: 0, y: 0 });`
+- **Why:** It prevents you from accidentally updating one without the other, which could lead to a re-render with mismatched data.
+
+### 2. Avoid Contradictions in State
+
+State should never be able to represent an "impossible" scenario.
+
+- **Bad:** Using multiple booleans that could conflict: `isTyping`, `isSubmitting`, `isSuccess`, `isError`. (What if `isTyping` and `isSuccess` are both true?)
+- **Good:** Use a single string state (a "status"): `const [status, setStatus] = useState('typing');` (where status can be `'typing' | 'submitting' | 'success' | 'error'`).
+
+### 3. Avoid Redundant State
+
+**If you can calculate it from existing props or state, do NOT put it in state.**
+
+- **Bad:** `const [firstName, setFirstName] = useState('');` and `const [fullName, setFullName] = useState('');`
+- **Good:** `const fullName = firstName + ' ' + lastName;` (calculated during render).
+- **Interview Trigger:** _"Why didn't you put the filtered list in state?"_
+- **Answer:** "It's derived state. I can compute it on the fly using `.filter()`. Putting it in state means I have to manually sync it every time the original list or the filter changes, which introduces bugs."
+
+### 4. Avoid Duplication in State
+
+If the same data is stored in multiple places, it's easy to forget to update one of them.
+
+- **Bad:** Storing an array of `items` AND a separate `selectedItem` object. (If you edit the item in the array, the `selectedItem` object won't update).
+- **Good:** Store only the `selectedId`. To get the item, find it in the array: `const selectedItem = items.find(i => i.id === selectedId);`
+
+### 5. Avoid Deeply Nested State
+
+Deeply nested objects are painful to update in React because you have to copy every level of the object to maintain immutability.
+
+- **Bad:** `user.profile.address.city` (Updating this requires copying `user`, `profile`, and `address`).
+- **Good:** Flatten your state. Keep `user`, `profile`, and `address` as separate state objects if they are updated independently.
+- **If you MUST nest:** Use the spread operator carefully: `setUser({ ...user, profile: { ...user.profile, address: { ...user.profile.address, city: 'New York' } } })` (This is why we avoid nesting!).
+
+## 🚨 Gotchas & Interview Triggers
+
+- **Trigger:** _"What is derived state?"_
+  - **Answer:** "Derived state is any data that can be computed from existing state or props. We should not store it in `useState` because it can get out of sync. We calculate it during the render phase instead."
+- **Trigger:** _"How do you update a nested property in React state?"_
+  - **Answer:** "You must use the spread operator to create a new copy at every level of the nesting. This is why it's recommended to keep state as flat as possible."
+
+## 📝 Flashcards to Add:
+
+1. **Front:** If you have a form with a `firstName` and `lastName` state, should you create a `fullName` state?
+   **Back:** No. `fullName` is redundant/derived state. Compute it during render (`firstName + ' ' + lastName`).
+
+2. **Front:** Why are multiple boolean flags (like `isLoading`, `isError`, `isSuccess`) considered a bad state structure?
+   **Back:** Because they can create contradictory states (e.g., `isLoading` and `isSuccess` being true at the same time). Use a single `status` string instead.
+
+3. **Front:** How should you structure state to avoid deeply nested objects?
+   **Back:** Flatten the state. Break deeply nested objects into separate, independent state variables.
+
+# React: Sharing State Between Components
+
+## The Core Philosophy: Single Source of Truth
+
+Sometimes, two components need to reflect the same changing data.
+Instead of giving each component its own state (which can get out of sync), you should move the state to their **closest common parent**. This parent becomes the **"Single Source of Truth."**
+
+This is called **Lifting State Up**.
+
+## The 3 Steps to Lift State Up
+
+If `ChildA` and `ChildB` need to share state, follow these steps:
+
+1. **Remove state from the children:** Delete `useState` from the child components.
+2. **Pass state down from the parent:** Move the `useState` to the parent and pass the value down as a prop to both children.
+3. **Pass event handlers down:** The parent should define the function that updates the state, and pass that function down as a prop to the children.
+
+## The Pattern (Props Down, Events Up)
+
+This is the physical implementation of **Unidirectional Data Flow**.
+
+```jsx
+function Parent() {
+  // 1. State lives in the parent
+  const [value, setValue] = useState("");
+
+  return (
+    <div>
+      {/* 2. Pass the state value DOWN as a prop */}
+      <ChildA value={value} />
+
+      {/* 3. Pass the setter function DOWN as a prop */}
+      <ChildB onValueChange={setValue} />
+    </div>
+  );
+}
+
+function ChildA({ value }) {
+  return <p>Current value: {value}</p>; // Reads state
+}
+
+function ChildB({ onValueChange }) {
+  return (
+    <input
+      value={value}
+      // Calls the parent's function to update state
+      onChange={(e) => onValueChange(e.target.value)}
+    />
+  );
+}
+```
